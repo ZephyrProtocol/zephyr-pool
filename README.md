@@ -1,155 +1,212 @@
-cryptonote-nodejs-pool
-======================
+# zephyr-cryptonote-nodejs-pool
+
+Forked from [cryptonote-nodejs-pool](https://github.com/dvandal/cryptonote-nodejs-pool)
 
 High performance Node.js (with native C addons) mining pool for CryptoNote based coins. Comes with lightweight example front-end script which uses the pool's AJAX API. Support for Cryptonight (Original, Monero v7, Stellite v7), Cryptonight Light (Original, Aeon v7, IPBC) Cryptonight Fast (Electronero/Crystaleum), and Cryptonight Heavy (Sumokoin) algorithms.
 
+## Zephyr Specifics
+
+Zephyr requires a modified version of `cryptoforknote-util` called `zephyr-cryptonote-util`
+
+[zephyr-cryptoforknote-util](https://github.com/ZephyrProtocol/zephyr-cryptoforknote-util.git)
+
+A PR will be submitted to the original repo to add the required changes to the original repo.
+If you want to support Zephyr with your pool, you will need to use this modified version but please be aware of the changes (they may conflict if you aren't using the repo from MoneroOcean!)
+
+package.json
+
+```json
+  "dependencies": {
+    ...
+    "cryptoforknote-util": "git+https://github.com/ZephyrProtocol/zephyr-cryptoforknote-util.git",
+    ...
+  }
+```
+
+config.json
+
+```json
+    ...
+  "cnVariant": 0,
+  "cnBlobType": 13, // 13 for Zephyr - this points to the modified zephyr-cryptoforknote-util
+  "includeHeight": true,
+  "isRandomX": true,
+    ...
+```
+
+Tested/running on ubuntu 20.04 / nodejs 14 / redis npm package 3.1.2
 
 #### Table of Contents
-* [Features](#features)
-* [Usage](#usage)
-  * [Requirements](#requirements)
-  * [Downloading & Installing](#1-downloading--installing)
-  * [Configuration](#2-configuration)
-  * [Starting the Pool](#3-start-the-pool)
-  * [Host the front-end](#4-host-the-front-end)
-  * [Customizing your website](#5-customize-your-website)
-  * [SSL](#ssl)
-  * [Upgrading](#upgrading)
-* [JSON-RPC Commands from CLI](#json-rpc-commands-from-cli)
-* [Monitoring Your Pool](#monitoring-your-pool)
-* [Community Support](#community--support)
-* [Pools Using This Software](#pools-using-this-software)
-* [Referral Links](#referral-links)
-* [Donations](#donations)
-* [Credits](#credits)
-* [License](#license)
 
+- [zephyr-cryptonote-nodejs-pool](#zephyr-cryptonote-nodejs-pool)
+  - [Zephyr Specifics](#zephyr-specifics)
+      - [Table of Contents](#table-of-contents)
+- [Features](#features)
+      - [Optimized pool server](#optimized-pool-server)
+      - [Live statistics API](#live-statistics-api)
+      - [Mined blocks explorer](#mined-blocks-explorer)
+      - [Smart payment processing](#smart-payment-processing)
+      - [Admin panel](#admin-panel)
+      - [Pool stability monitoring](#pool-stability-monitoring)
+      - [Extra features](#extra-features)
+- [Usage](#usage)
+      - [Requirements](#requirements)
+        - [Seriously](#seriously)
+      - [1) Downloading \& Installing](#1-downloading--installing)
+      - [2) Configuration](#2-configuration)
+      - [3) Start the pool](#3-start-the-pool)
+      - [4) Host the front-end](#4-host-the-front-end)
+      - [5) Customize your website](#5-customize-your-website)
+      - [SSL](#ssl)
+      - [Upgrading](#upgrading)
+    - [JSON-RPC Commands from CLI](#json-rpc-commands-from-cli)
+    - [Monitoring Your Pool](#monitoring-your-pool)
+- [Community / Support](#community--support)
+      - [Pools Using This Software](#pools-using-this-software)
+  - [Referral Links](#referral-links)
+  - [Donations](#donations)
+  - [Credits](#credits)
+  - [License](#license)
 
-Features
-===
+# Features
 
 #### Optimized pool server
-* TCP (stratum-like) protocol for server-push based jobs
-  * Compared to old HTTP protocol, this has a higher hash rate, lower network/CPU server load, lower orphan
+
+- TCP (stratum-like) protocol for server-push based jobs
+  - Compared to old HTTP protocol, this has a higher hash rate, lower network/CPU server load, lower orphan
     block percent, and less error prone
-* Support for Cryptonight (Original, Monero v7, Stellite v7), Cryptonight Light (Original, Aeon v7, IPBC) and Cryptonight Heavy (Sumokoin) algorithms.
-* IP banning to prevent low-diff share attacks
-* Socket flooding detection
-* Share trust algorithm to reduce share validation hashing CPU load
-* Clustering for vertical scaling
-* Ability to configure multiple ports - each with their own difficulty
-* Miner login (wallet address) validation
-* Workers identification (specify worker name as the password)
-* Variable difficulty / share limiter
-* Set fixed difficulty on miner client by passing "address" param with "+[difficulty]" postfix
-* Modular components for horizontal scaling (pool server, database, stats/API, payment processing, front-end)
-* SSL support for both pool and API servers
-* RBPPS (PROP) payment system
+- Support for Cryptonight (Original, Monero v7, Stellite v7), Cryptonight Light (Original, Aeon v7, IPBC) and Cryptonight Heavy (Sumokoin) algorithms.
+- IP banning to prevent low-diff share attacks
+- Socket flooding detection
+- Share trust algorithm to reduce share validation hashing CPU load
+- Clustering for vertical scaling
+- Ability to configure multiple ports - each with their own difficulty
+- Miner login (wallet address) validation
+- Workers identification (specify worker name as the password)
+- Variable difficulty / share limiter
+- Set fixed difficulty on miner client by passing "address" param with "+[difficulty]" postfix
+- Modular components for horizontal scaling (pool server, database, stats/API, payment processing, front-end)
+- SSL support for both pool and API servers
+- RBPPS (PROP) payment system
 
 #### Live statistics API
-* Currency network/block difficulty
-* Current block height
-* Network hashrate
-* Pool hashrate
-* Each miners' individual stats (hashrate, shares submitted, pending balance, total paid, payout estimate, etc)
-* Blocks found (pending, confirmed, and orphaned)
-* Historic charts of pool's hashrate, miners count and coin difficulty
-* Historic charts of users's hashrate and payments
+
+- Currency network/block difficulty
+- Current block height
+- Network hashrate
+- Pool hashrate
+- Each miners' individual stats (hashrate, shares submitted, pending balance, total paid, payout estimate, etc)
+- Blocks found (pending, confirmed, and orphaned)
+- Historic charts of pool's hashrate, miners count and coin difficulty
+- Historic charts of users's hashrate and payments
 
 #### Mined blocks explorer
-* Mined blocks table with block status (pending, confirmed, and orphaned)
-* Blocks luck (shares/difficulty) statistics
-* Universal blocks and transactions explorer based on [chainradar.com](http://chainradar.com)
+
+- Mined blocks table with block status (pending, confirmed, and orphaned)
+- Blocks luck (shares/difficulty) statistics
+- Universal blocks and transactions explorer based on [chainradar.com](http://chainradar.com)
 
 #### Smart payment processing
-* Splintered transactions to deal with max transaction size
-* Minimum payment threshold before balance will be paid out
-* Minimum denomination for truncating payment amount precision to reduce size/complexity of block transactions
-* Prevent "transaction is too big" error with "payments.maxTransactionAmount" option
-* Option to enable dynamic transfer fee based on number of payees per transaction and option to have miner pay transfer fee instead of pool owner (applied to dynamic fee only)
-* Control transactions priority with config.payments.priority (default: 0).
-* Set payment ID on miner client when using "[address].[paymentID]" login
-* Integrated payment ID addresses support for Exchanges
+
+- Splintered transactions to deal with max transaction size
+- Minimum payment threshold before balance will be paid out
+- Minimum denomination for truncating payment amount precision to reduce size/complexity of block transactions
+- Prevent "transaction is too big" error with "payments.maxTransactionAmount" option
+- Option to enable dynamic transfer fee based on number of payees per transaction and option to have miner pay transfer fee instead of pool owner (applied to dynamic fee only)
+- Control transactions priority with config.payments.priority (default: 0).
+- Set payment ID on miner client when using "[address].[paymentID]" login
+- Integrated payment ID addresses support for Exchanges
 
 #### Admin panel
-* Aggregated pool statistics
-* Coin daemon & wallet RPC services stability monitoring
-* Log files data access
-* Users list with detailed statistics
+
+- Aggregated pool statistics
+- Coin daemon & wallet RPC services stability monitoring
+- Log files data access
+- Users list with detailed statistics
 
 #### Pool stability monitoring
-* Detailed logging in process console & log files
-* Coin daemon & wallet RPC services stability monitoring
-* See logs data from admin panel
+
+- Detailed logging in process console & log files
+- Coin daemon & wallet RPC services stability monitoring
+- See logs data from admin panel
 
 #### Extra features
-* An easily extendable, responsive, light-weight front-end using API to display data
-* Onishin's [keepalive function](https://github.com/perl5577/cpuminer-multi/commit/0c8aedb)
-* Support for merged mining
-* Support for slush mining system (disabled by default)
-* E-Mail Notifications on worker connected, disconnected (timeout) or banned (support MailGun, SMTP and Sendmail)
-* Telegram channel notifications when a block is unlocked
-* Top 10 miners report
-* Multilingual user interface
 
-Usage
-===
+- An easily extendable, responsive, light-weight front-end using API to display data
+- Onishin's [keepalive function](https://github.com/perl5577/cpuminer-multi/commit/0c8aedb)
+- Support for merged mining
+- Support for slush mining system (disabled by default)
+- E-Mail Notifications on worker connected, disconnected (timeout) or banned (support MailGun, SMTP and Sendmail)
+- Telegram channel notifications when a block is unlocked
+- Top 10 miners report
+- Multilingual user interface
+
+# Usage
 
 #### Requirements
-* Coin daemon(s) (find the coin's repo and build latest version from source)
-* [Node.js](http://nodejs.org/) v11.0+
-  * For Ubuntu: 
- ```
-  curl -sL https://deb.nodesource.com/setup_11.x | sudo -E bash
-  sudo apt-get install -y nodejs
- ```
-  * Or use NVM(https://github.com/creationix/nvm) for debian/ubuntu.
 
+- Coin daemon(s) (find the coin's repo and build latest version from source)
+- [Node.js](http://nodejs.org/) v11.0+
+  - For Ubuntu:
 
-* [Redis](http://redis.io/) key-value store v2.6+ 
-  * For Ubuntu: 
+```
+ curl -sL https://deb.nodesource.com/setup_11.x | sudo -E bash
+ sudo apt-get install -y nodejs
+```
+
+- Or use NVM(https://github.com/creationix/nvm) for debian/ubuntu.
+
+- [Redis](http://redis.io/) key-value store v2.6+
+  - For Ubuntu:
+
 ```
 sudo add-apt-repository ppa:chris-lea/redis-server
 sudo apt-get update
 sudo apt-get install redis-server
- ```
- Dont forget to tune redis-server:
- ```
+```
+
+Dont forget to tune redis-server:
+
+```
 echo never > /sys/kernel/mm/transparent_hugepage/enabled
 echo 1024 > /proc/sys/net/core/somaxconn
- ```
- Add this lines to your /etc/rc.local and make it executable
- ```
- chmod +x /etc/rc.local
- ```
- 
-* libssl required for the node-multi-hashing module
-  * For Ubuntu: `sudo apt-get install libssl-dev`
+```
 
-* Boost is required for the cryptoforknote-util module
-  * For Ubuntu: `sudo apt-get install libboost-all-dev`
-  
-* libsodium  
-  * For Ubuntu: `sudo apt-get install libsodium-dev`
+Add this lines to your /etc/rc.local and make it executable
 
+```
+chmod +x /etc/rc.local
+```
+
+- libssl required for the node-multi-hashing module
+
+  - For Ubuntu: `sudo apt-get install libssl-dev`
+
+- Boost is required for the cryptoforknote-util module
+  - For Ubuntu: `sudo apt-get install libboost-all-dev`
+- libsodium
+  - For Ubuntu: `sudo apt-get install libsodium-dev`
 
 ##### Seriously
+
 Those are legitimate requirements. If you use old versions of Node.js or Redis that may come with your system package manager then you will have problems. Follow the linked instructions to get the last stable versions.
 
 [**Redis warning**](http://redis.io/topics/security): It'sa good idea to learn about and understand software that
 you are using - a good place to start with redis is [data persistence](http://redis.io/topics/persistence).
 
 **Do not run the pool as root** : create a new user without ssh access to avoid security issues :
+
 ```bash
 sudo adduser --disabled-password --disabled-login your-user
 ```
-To login with this user : 
+
+To login with this user :
+
 ```
 sudo su - your-user
 ```
 
 #### 1) Downloading & Installing
-
 
 Clone the repository and run `npm update` for all the dependencies to be installed:
 
@@ -165,6 +222,7 @@ npm update
 Copy the `config_examples/COIN.json` file of your choice to `config.json` then overview each options and change any to match your preferred setup.
 
 Explanation for each field:
+
 ```javascript
 /* Pool host displayed in notifications and front-end */
 "poolHost": "your.pool.host",
@@ -180,7 +238,7 @@ Explanation for each field:
 
 /* Number of coin decimals places for notifications and front-end */
 "coinDecimalPlaces": 4,
-  
+
 /* Coin network time to mine one block, see DIFFICULTY_TARGET constant in DAEMON_CODE/src/cryptonote_config.h */
 "coinDifficultyTarget": 120,
 
@@ -199,7 +257,7 @@ Explanation for each field:
 "cnVariant": 1,
 "cnBlobType": 0,
 "includeHeight":false, /*true to include block.height in job to miner*/
-"includeAlgo":"cn/wow", /*wownero specific change to include algo in job to miner*/	
+"includeAlgo":"cn/wow", /*wownero specific change to include algo in job to miner*/
 "isRandomX": true,
 /* Logging */
 "logging": {
@@ -250,16 +308,16 @@ Explanation for each field:
 
     /* Address where block rewards go, and miner payments come from. */
     "poolAddress": "your wallet",
-    
+
     /* This is the Public address prefix used for miner login validation. */
     "pubAddressPrefix": 343,
-    
+
     /* This is the Integrated address prefix used for miner login validation. */
     "intAddressPrefix": 340,
-    
+
     /* This is the Subaddress prefix used for miner login validation. */
     "subAddressPrefix": 439,
-    
+
     /* Poll RPC daemons for new blocks every this many milliseconds. */
     "blockRefreshInterval": 1000,
 
@@ -269,7 +327,7 @@ Explanation for each field:
     "sslCert": "./cert.pem", // The SSL certificate
     "sslKey": "./privkey.pem", // The SSL private key
     "sslCA": "./chain.pem" // The SSL certificate authority chain
-    
+
     "ports": [
         {
             "port": 3333, // Port for mining apps to connect to
@@ -316,7 +374,7 @@ Explanation for each field:
         "variancePercent": 30, // Allow time to vary this % from target without retargeting
         "maxJump": 100 // Limit diff percent increase/decrease in a single retargeting
     },
-	
+
     /* Set difficulty on miner client side by passing <address> param with +<difficulty> postfix */
     "fixedDiff": {
         "enabled": true,
@@ -348,7 +406,7 @@ Explanation for each field:
         "invalidPercent": 25, // What percent of invalid shares triggers ban
         "checkThreshold": 30 // Perform check when this many shares have been submitted
     },
-    
+
     /* Slush Mining is a reward calculation technique which disincentivizes pool hopping and rewards 'loyal' miners by valuing younger shares higher than older shares. Remember adjusting the weight!
     More about it here: https://mining.bitcoin.cz/help/#!/manual/rewards */
     "slushMining": {
@@ -363,7 +421,7 @@ Explanation for each field:
     "interval": 300, // How often to run in seconds
     "maxAddresses": 50, // Split up payments if sending to more than this many addresses
     "mixin": 5, // Number of transactions yours is indistinguishable from
-    "priority": 0, // The transaction priority    
+    "priority": 0, // The transaction priority
     "transferFee": 4000000000, // Fee to pay for each transaction
     "dynamicTransferFee": true, // Enable dynamic transfer fee (fee is multiplied by number of miners)
     "minerPayFee" : true, // Miner pays the transfer fee instead of pool owner when using dynamic transfer fee
@@ -388,7 +446,7 @@ Explanation for each field:
     "finderReward": 0.2, // 0.2 finder reward
     "devDonation": 0.2, // 0.2% donation to send to pool dev
     "networkFee": 0.0, // Network/Governance fee (used by some coins like Loki)
-    
+
     /* Some forknote coins have an issue with block height in RPC request, to fix you can enable this option.
        See: https://github.com/forknote/forknote-pool/issues/48 */
     "fixBlockHeightRPC": false
@@ -473,13 +531,13 @@ Explanation for each field:
     "enabled": false,
     "fromAddress": "your@email.com", // Your sender email
     "transport": "sendmail", // The transport mode (sendmail, smtp or mailgun)
-    
+
     // Configuration for sendmail transport
     // Documentation: http://nodemailer.com/transports/sendmail/
     "sendmail": {
         "path": "/usr/sbin/sendmail" // The path to sendmail command
     },
-    
+
     // Configuration for SMTP transport
     // Documentation: http://nodemailer.com/smtp/
     "smtp": {
@@ -494,7 +552,7 @@ Explanation for each field:
             "rejectUnauthorized": false // Reject unauthorized TLS/SSL certificate
         }
     },
-    
+
     // Configuration for MailGun transport
     "mailgun": {
         "key": "your-private-key", // Your MailGun Private API key
@@ -517,7 +575,7 @@ Explanation for each field:
         "stats": "/stats", // Pool statistics
          "enable": "/enable", // Enable telegram notifications
         "disable": "/disable" // Disable telegram notifications
-    }    
+    }
 },
 
 /* Monitoring RPC services. Statistics will be displayed in Admin panel */
@@ -537,7 +595,7 @@ Explanation for each field:
     "source": "cryptonator", // Exchange (supported values: cryptonator, altex, crex24, cryptopia, stocks.exchange, tradeogre, maplechange)
     "currency": "USD" // Default currency
 },
-	    
+
 /* Collect pool statistics to display in frontend charts  */
 "charts": {
     "pool": {
@@ -616,13 +674,13 @@ node init.js -config=config_backup.json
 ```
 
 This software contains four distinct modules:
-* `pool` - Which opens ports for miners to connect and processes shares
-* `api` - Used by the website to display network, pool and miners' data
-* `unlocker` - Processes block candidates and increases miners' balances when blocks are unlocked
-* `payments` - Sends out payments to miners according to their balances stored in redis
-* `chartsDataCollector` - Processes miners and workers hashrate stats and charts
-* `telegramBot`	- Processes telegram bot commands
 
+- `pool` - Which opens ports for miners to connect and processes shares
+- `api` - Used by the website to display network, pool and miners' data
+- `unlocker` - Processes block candidates and increases miners' balances when blocks are unlocked
+- `payments` - Sends out payments to miners according to their balances stored in redis
+- `chartsDataCollector` - Processes miners and workers hashrate stats and charts
+- `telegramBot` - Processes telegram bot commands
 
 By default, running the `init.js` script will start up all four modules. You can optionally have the script start
 only start a specific module by using the `-module=name` command argument, for example:
@@ -635,7 +693,7 @@ node init.js -module=api
 
 To keep your pool up, on operating system with systemd, you can create add your pool software as a service.  
 Use this [example](https://github.com/dvandal/cryptonote-nodejs-pool/blob/master/deployment/cryptonote-nodejs-pool.service) to create the systemd service `/lib/systemd/system/cryptonote-nodejs-pool.service`
-Then enable and start the service with the following commands : 
+Then enable and start the service with the following commands :
 
 ```
 sudo systemctl enable cryptonote-nodejs-pool.service
@@ -645,7 +703,6 @@ sudo systemctl start cryptonote-nodejs-pool.service
 #### 4) Host the front-end
 
 Simply host the contents of the `website_example` directory on file server capable of serving simple static files.
-
 
 Edit the variables in the `website_example/config.js` file to use your pool's specific configuration.
 Variable explanations:
@@ -694,9 +751,9 @@ var defaultLang = 'en';
 
 The following files are included so that you can customize your pool website without having to make significant changes
 to `index.html` or other front-end files thus reducing the difficulty of merging updates with your own changes:
-* `custom.css` for creating your own pool style
-* `custom.js` for changing the functionality of your pool website
 
+- `custom.css` for creating your own pool style
+- `custom.js` for changing the functionality of your pool website
 
 Then simply serve the files via nginx, Apache, Google Drive, or anything that can host static content.
 
@@ -704,14 +761,14 @@ Then simply serve the files via nginx, Apache, Google Drive, or anything that ca
 
 You can configure the API to be accessible via SSL using various methods. Find an example for nginx below:
 
-* Using SSL api in `config.json`:
+- Using SSL api in `config.json`:
 
 By using this you will need to update your `api` variable in the `website_example/config.js`. For example:  
 `var api = "https://poolhost:8119";`
 
-* Inside your SSL Listener, add the following:
+- Inside your SSL Listener, add the following:
 
-``` javascript
+```javascript
 location ~ ^/api/(.*) {
     proxy_pass http://127.0.0.1:8117/$1$is_args$args;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -723,14 +780,14 @@ By adding this you will need to update your `api` variable in the `website_examp
 
 You no longer need to include the port in the variable because of the proxy connection.
 
-* Using his own subdomain, for example `api.poolhost.com`:
+- Using his own subdomain, for example `api.poolhost.com`:
 
 ```bash
 server {
     server_name api.poolhost.com
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
-    
+
     ssl_certificate /your/ssl/certificate;
     ssl_certificate_key /your/ssl/certificate_key;
 
@@ -752,21 +809,22 @@ By adding this you will need to update your `api` variable in the `website_examp
 
 You no longer need to include the port in the variable because of the proxy connection.
 
-
 #### Upgrading
+
 When updating to the latest code its important to not only `git pull` the latest from this repo, but to also update
 the Node.js modules, and any config files that may have been changed.
-* Inside your pool directory (where the init.js script is) do `git pull` to get the latest code.
-* Remove the dependencies by deleting the `node_modules` directory with `rm -r node_modules`.
-* Run `npm update` to force updating/reinstalling of the dependencies.
-* Compare your `config.json` to the latest example ones in this repo or the ones in the setup instructions where each config field is explained. You may need to modify or add any new changes.
+
+- Inside your pool directory (where the init.js script is) do `git pull` to get the latest code.
+- Remove the dependencies by deleting the `node_modules` directory with `rm -r node_modules`.
+- Run `npm update` to force updating/reinstalling of the dependencies.
+- Compare your `config.json` to the latest example ones in this repo or the ones in the setup instructions where each config field is explained. You may need to modify or add any new changes.
 
 ### JSON-RPC Commands from CLI
 
 Documentation for JSON-RPC commands can be found here:
-* Daemon https://wiki.bytecoin.org/wiki/JSON_RPC_API
-* Wallet https://wiki.bytecoin.org/wiki/Wallet_JSON_RPC_API
 
+- Daemon https://wiki.bytecoin.org/wiki/JSON_RPC_API
+- Wallet https://wiki.bytecoin.org/wiki/Wallet_JSON_RPC_API
 
 Curl can be used to use the JSON-RPC commands from command-line. Here is an example of calling `getblockheaderbyheight` for block 100:
 
@@ -774,62 +832,57 @@ Curl can be used to use the JSON-RPC commands from command-line. Here is an exam
 curl 127.0.0.1:18081/json_rpc -d '{"method":"getblockheaderbyheight","params":{"height":100}}'
 ```
 
-
 ### Monitoring Your Pool
 
-* To inspect and make changes to redis I suggest using [redis-commander](https://github.com/joeferner/redis-commander)
-* To monitor server load for CPU, Network, IO, etc - I suggest using [Netdata](https://github.com/firehol/netdata)
-* To keep your pool node script running in background, logging to file, and automatically restarting if it crashes - I suggest using [forever](https://github.com/nodejitsu/forever) or [PM2](https://github.com/Unitech/pm2)
+- To inspect and make changes to redis I suggest using [redis-commander](https://github.com/joeferner/redis-commander)
+- To monitor server load for CPU, Network, IO, etc - I suggest using [Netdata](https://github.com/firehol/netdata)
+- To keep your pool node script running in background, logging to file, and automatically restarting if it crashes - I suggest using [forever](https://github.com/nodejitsu/forever) or [PM2](https://github.com/Unitech/pm2)
 
+# Community / Support
 
-Community / Support
-===
-
-* [GitHub Issues](https://github.com/dvandal/cryptonote-nodejs-pool/issues)
-* [Telegram Group](http://t.me/CryptonotePool)
+- [GitHub Issues](https://github.com/dvandal/cryptonote-nodejs-pool/issues)
+- [Telegram Group](http://t.me/CryptonotePool)
 
 #### Pools Using This Software
 
-* https://pool.leviar.io/
-* https://pool.croat.community/
+- https://pool.leviar.io/
+- https://pool.croat.community/
 
-Referral Links
---------------
-* NiceHash Miner - Test your mining pool: [https://www.nicehash.com/?refby=938d7799-8f8e-4935-975e-897a1567b1ed](https://www.nicehash.com/?refby=938d7799-8f8e-4935-975e-897a1567b1ed)
-* Binance Exchange - Buy and Sell cryptos: [https://www.binance.com/en/register?ref=92696209](https://www.binance.com/en/register?ref=92696209)
-* Coinbase Wallet - Buy 100$ USD and get 10$ USD free: [https://www.coinbase.com/join/vandal_y](https://www.coinbase.com/join/vandal_y)
-* Shakepay Wallet - Buy 100$ CAD and get 30$ CAD free: [https://shakepay.me/r/VDAIT0G](https://shakepay.me/r/VDAIT0G)
+## Referral Links
 
-Donations
----------
+- NiceHash Miner - Test your mining pool: [https://www.nicehash.com/?refby=938d7799-8f8e-4935-975e-897a1567b1ed](https://www.nicehash.com/?refby=938d7799-8f8e-4935-975e-897a1567b1ed)
+- Binance Exchange - Buy and Sell cryptos: [https://www.binance.com/en/register?ref=92696209](https://www.binance.com/en/register?ref=92696209)
+- Coinbase Wallet - Buy 100$ USD and get 10$ USD free: [https://www.coinbase.com/join/vandal_y](https://www.coinbase.com/join/vandal_y)
+- Shakepay Wallet - Buy 100$ CAD and get 30$ CAD free: [https://shakepay.me/r/VDAIT0G](https://shakepay.me/r/VDAIT0G)
+
+## Donations
 
 Thanks for supporting my works on this project! If you want to make a donation to [Dvandal](https://github.com/dvandal/), the developper of this project, you can send any amount of your choice to one of theses addresses:
 
-* Bitcoin (BTC): `392gS9zuYQBghmMpK3NipBTaQcooR9UoGy`
-* Bitcoin Cash (BCH): `qp46fz7ht8xdhwepqzhk7ct3aa0ucypfgv5qvv57td`
-* Monero (XMR): `49WyMy9Q351C59dT913ieEgqWjaN12dWM5aYqJxSTZCZZj1La5twZtC3DyfUsmVD3tj2Zud7m6kqTVDauRz53FqA9zphHaj`
-* Dash (DASH): `XgFnxEu1ru7RTiM4uH1GWt2yseU1BVBqWL`
-* Ethereum (ETH): `0x8c42D411545c9E1963ff56A91d06dEB8C4A9f444`
-* Ethereum Classic (ETC): `0x4208D6775A2bbABe64C15d76e99FE5676F2768Fb`
-* Litecoin (LTC): `LS9To9u2C95VPHKauRMEN5BLatC8C1k4F1`
-* USD Coin (USDC): `0xb5c6BEc389252F24dd3899262AC0D2754B0fC1a3`
-* Augur (REP): `0x5A66CE95ea2428BC5B2c7EeB7c96FC184258f064`
-* Basic Attention Token (BAT): `0x5A66CE95ea2428BC5B2c7EeB7c96FC184258f064`
-* Chainlink (LINK): `0x5A66CE95ea2428BC5B2c7EeB7c96FC184258f064`
-* Dai (DAI): `0xF2a50BcCEE8BEb7807dA40609620e454465B40A1`
-* Orchid (OXT): `0xf52488AAA1ab1b1EB659d6632415727108600BCb`
-* Tezos (XTZ): `tz1T1idcT5hfyjfLHWeqbYvmrcYn5JgwrJKW`
-* Zcash (ZCH): `t1YTGVoVbeCuTn3Pg9MPGrSqweFLPGTQ7on`
-* 0x (ZRX): `0x4e52AAfC6dAb2b7812A0a7C24a6DF6FAab65Fc9a`
+- Bitcoin (BTC): `392gS9zuYQBghmMpK3NipBTaQcooR9UoGy`
+- Bitcoin Cash (BCH): `qp46fz7ht8xdhwepqzhk7ct3aa0ucypfgv5qvv57td`
+- Monero (XMR): `49WyMy9Q351C59dT913ieEgqWjaN12dWM5aYqJxSTZCZZj1La5twZtC3DyfUsmVD3tj2Zud7m6kqTVDauRz53FqA9zphHaj`
+- Dash (DASH): `XgFnxEu1ru7RTiM4uH1GWt2yseU1BVBqWL`
+- Ethereum (ETH): `0x8c42D411545c9E1963ff56A91d06dEB8C4A9f444`
+- Ethereum Classic (ETC): `0x4208D6775A2bbABe64C15d76e99FE5676F2768Fb`
+- Litecoin (LTC): `LS9To9u2C95VPHKauRMEN5BLatC8C1k4F1`
+- USD Coin (USDC): `0xb5c6BEc389252F24dd3899262AC0D2754B0fC1a3`
+- Augur (REP): `0x5A66CE95ea2428BC5B2c7EeB7c96FC184258f064`
+- Basic Attention Token (BAT): `0x5A66CE95ea2428BC5B2c7EeB7c96FC184258f064`
+- Chainlink (LINK): `0x5A66CE95ea2428BC5B2c7EeB7c96FC184258f064`
+- Dai (DAI): `0xF2a50BcCEE8BEb7807dA40609620e454465B40A1`
+- Orchid (OXT): `0xf52488AAA1ab1b1EB659d6632415727108600BCb`
+- Tezos (XTZ): `tz1T1idcT5hfyjfLHWeqbYvmrcYn5JgwrJKW`
+- Zcash (ZCH): `t1YTGVoVbeCuTn3Pg9MPGrSqweFLPGTQ7on`
+- 0x (ZRX): `0x4e52AAfC6dAb2b7812A0a7C24a6DF6FAab65Fc9a`
 
-Credits
----------
+## Credits
 
-* [fancoder](//github.com/fancoder) - Developper on cryptonote-universal-pool project from which current project is forked.
-* [dvandal](//github.com/dvandal) - Developer of cryptonote-nodejs-pool software
+- [fancoder](//github.com/fancoder) - Developper on cryptonote-universal-pool project from which current project is forked.
+- [dvandal](//github.com/dvandal) - Developer of cryptonote-nodejs-pool software
 
-License
--------
+## License
+
 Released under the GNU General Public License v2
 
 http://www.gnu.org/licenses/gpl-2.0.html

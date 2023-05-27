@@ -8,3 +8,5 @@ chain.pem
 fullchain.pem
 privkey.pem
 package-lock.json
+config_examples/
+config.json
