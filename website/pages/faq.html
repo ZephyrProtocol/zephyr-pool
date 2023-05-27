@@ -1,31 +1,5 @@
 <h3>Frequently Asked Questions (FAQ)</h3>
 
-<h4 class="push-up-20" data-tkey="faq1_title">How do I pick which coins to merge mine?</h4>
-<div class="card padding-15 push-down-10" data-tkey="faq1_text"><p>The hash work of your miner application to the parent coin is also applied to the child coin you specify in the mining software pool password field.</p>
-
-<p>You must mine at one parent coin, which in this case is ARQ for ArQmA.
-Specify your ArQmA wallet address and static difficulty per the Getting Started page.
-Using the pool password field in your miner to specify one of the child coin wallet addresses. See which child coins are listed on the pool's Dashboard page.
-You will need at least a wallet address from an exchange or a wallet/paper wallet application to get an coin address for the parent coin and each child coin you wish to merge mine.</p>
-
-<p>You can also connect multiple rigs with the same wallet address for the parent coin, and different child coin wallet address to apply hash to that child coin also.</p>
-
-<p>Specify your rig_id in your miner software.</p>
-<p>Put your child coin wallet address in the pool password field and put "@rig_id" at the end.
- It can be a direct to exchange address also.</p>
-<p>For example in XMR-STAK,  the pools.txt config file  looks something like this:
-"rig_id" : "Johnny5",
-An example  wallet for Turtle child coin is "TRTL2aedfsr23blahlongaddressfield+paymentIDsomething"  
-so make it formatted for the pool password as
-"pool_password" : "TRTL2aedfsr23blahlongaddressfield+paymentIDsomething@Johnny5"</p>
-
-<p>You can also use the configuration generator within the <a href="#getting_started">Getting Started</a> section of the pool.</p>
-<p>Also, you can segment your cpu mining on one mining application to be applied to
-the parent coin and specify your hash work one of the several child coins. 
-There is no limit on how many workers you can specify. You can also customize your miner application to mine only with certain gpus to a particular parent/child combination.  Probably you can run several mining applications in tandem as long as they use only resources you specify.</p>
-
-</div>
-
 <h4 class="push-up-20" data-tkey="faq1_title">Where are the stats for the pool?  Why hasn't anything changed?</h4>
 <div class="card padding-15 push-down-10" data-tkey="faq1_text">The dashboard lists the coins being mined, reward for each block, current effort on each block for the merged mining.   Sometimes the Pool Blocks section and Worker Statistics needs a refresh by your browser to get updated stats. Typically that is pressing CTRL+F5 to flush the cache and ask your brower for fresh data.</div>
 
