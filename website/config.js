@@ -1,6 +1,6 @@
-var parentCoin = "COIN";
+var parentCoin = "Zephyr";
 
-var api = "http://poolhost:8117";
+var api = "http://127.0.0.1:8117";
 var poolHost = "poolhost.com";
 
 var email = "support@poolhost.com";
