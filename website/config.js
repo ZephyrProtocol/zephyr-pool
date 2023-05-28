@@ -1,4 +1,4 @@
-var parentCoin = "Zephyr";
+var parentCoin = "zephyr";
 
 var api = "http://127.0.0.1:8117";
 var poolHost = "poolhost.com";

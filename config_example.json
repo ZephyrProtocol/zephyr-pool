@@ -122,7 +122,7 @@
     "minerPayFee": true,
     "minPayment": 1000000000000,
     "maxPayment": null,
-    "maxTransactionAmount": 0,
+    "maxTransactionAmount": 100000000000000,
     "denomination": 100000000000
   },
 

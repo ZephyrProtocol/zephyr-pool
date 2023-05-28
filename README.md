@@ -34,7 +34,7 @@ config.json
     ...
 ```
 
-Tested/running on ubuntu 20.04 / nodejs 14 / redis npm package 3.1.2
+Tested/running on ubuntu 20.04 / nodejs 14 / redis npm package 3.1.2 / npm package async 1.5.2
 
 #### Table of Contents
 
